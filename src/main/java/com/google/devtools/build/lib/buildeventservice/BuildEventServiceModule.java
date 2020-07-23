@@ -787,7 +787,6 @@ public abstract class BuildEventServiceModule<BESOptionsT extends BuildEventServ
     }
 
     if (!Strings.isNullOrEmpty(besStreamOptions.criticalPathBuildEventFile)) {
-      reporter.handle(Event.debug(">> Here 0. Try create bepTransportsBuilder"));
       try {
         BufferedOutputStream bepCriticalPathBuildEventStream =
             new BufferedOutputStream(
