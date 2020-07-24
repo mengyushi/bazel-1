@@ -64,21 +64,12 @@ public class BuildEventStreamOptions extends OptionsBase {
 
   @Option(
       name = "critical_path_build_event_file",
-      defaultValue = "",
+      defaultValue = "false",
       documentationCategory = OptionDocumentationCategory.LOGGING,
       effectTags = {OptionEffectTag.AFFECTS_OUTPUTS},
-      help = "If non-empty, write a textual representation of the critical path build event protocol to that file.")
-  public String criticalPathBuildEventFile;
-
-  @Option(
-    name = "critical_path_build_event_file_path_conversion",
-    defaultValue = "true",
-    documentationCategory = OptionDocumentationCategory.LOGGING,
-    effectTags = {OptionEffectTag.AFFECTS_OUTPUTS},
-    help = "Convert paths in the text file representation of the build event protocol to more "
-        + "globally valid URIs whenever possible; if disabled, the file:// uri scheme will "
-        + "always be used")
-public boolean criticalPathBuildEventFilePathConversion;
+      help = "If non-empty, write a textual representation of the critical path build event "
+            +" to a file name after its invocation id.")
+  public boolean criticalPathBuildEventFile;
 
   @Option(
       name = "build_event_text_file_path_conversion",

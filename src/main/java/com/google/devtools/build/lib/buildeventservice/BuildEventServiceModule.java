@@ -786,16 +786,13 @@ public abstract class BuildEventServiceModule<BESOptionsT extends BuildEventServ
       }
     }
 
-    if (!Strings.isNullOrEmpty(besStreamOptions.criticalPathBuildEventFile)) {
+    if (besStreamOptions.criticalPathBuildEventFile) {
       try {
         BufferedOutputStream bepCriticalPathBuildEventStream =
             new BufferedOutputStream(
-                Files.newOutputStream(Paths.get(besStreamOptions.criticalPathBuildEventFile)));
+                Files.newOutputStream(Paths.get(invocationId)));
 
-        BuildEventArtifactUploader localFileUploader =
-            besStreamOptions.criticalPathBuildEventFilePathConversion
-                ? uploaderSupplier.get()
-                : new LocalFilesArtifactUploader();
+        BuildEventArtifactUploader localFileUploader = new LocalFilesArtifactUploader();
         bepTransportsBuilder.add(
             new CriticalPathBuildEventFileTransport(
                 bepCriticalPathBuildEventStream,
@@ -809,7 +806,7 @@ public abstract class BuildEventServiceModule<BESOptionsT extends BuildEventServ
             reporter,
             cmdEnv.getBlazeModuleEnvironment(),
             "Unable to write to '"
-                + besStreamOptions.criticalPathBuildEventFile
+                + invocationId
                 + "'. Omitting --critical_path_build_event_file.",
             exception,
             ExitCode.LOCAL_ENVIRONMENTAL_ERROR,
