@@ -63,6 +63,15 @@ public class BuildEventStreamOptions extends OptionsBase {
   public String buildEventJsonFile;
 
   @Option(
+      name = "critical_path_build_event_file",
+      defaultValue = "false",
+      documentationCategory = OptionDocumentationCategory.LOGGING,
+      effectTags = {OptionEffectTag.AFFECTS_OUTPUTS},
+      help = "If non-empty, write a textual representation of the critical path build event "
+            +" to a file name after its invocation id.")
+  public boolean criticalPathBuildEventFile;
+
+  @Option(
       name = "build_event_text_file_path_conversion",
       oldName = "experimental_build_event_text_file_path_conversion",
       defaultValue = "true",

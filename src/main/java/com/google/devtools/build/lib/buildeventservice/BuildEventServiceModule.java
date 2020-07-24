@@ -44,6 +44,7 @@ import com.google.devtools.build.lib.buildeventstream.transports.BinaryFormatFil
 import com.google.devtools.build.lib.buildeventstream.transports.BuildEventStreamOptions;
 import com.google.devtools.build.lib.buildeventstream.transports.JsonFormatFileTransport;
 import com.google.devtools.build.lib.buildeventstream.transports.TextFormatFileTransport;
+import com.google.devtools.build.lib.buildeventstream.transports.CriticalPathBuildEventFileTransport;
 import com.google.devtools.build.lib.events.Event;
 import com.google.devtools.build.lib.events.EventHandler;
 import com.google.devtools.build.lib.events.Reporter;
@@ -779,6 +780,34 @@ public abstract class BuildEventServiceModule<BESOptionsT extends BuildEventServ
             "Unable to write to '"
                 + besStreamOptions.buildEventJsonFile
                 + "'. Omitting --build_event_json_file.",
+            exception,
+            ExitCode.LOCAL_ENVIRONMENTAL_ERROR,
+            BuildProgress.Code.BES_LOCAL_WRITE_ERROR);
+      }
+    }
+
+    if (besStreamOptions.criticalPathBuildEventFile) {
+      try {
+        BufferedOutputStream bepCriticalPathBuildEventStream =
+            new BufferedOutputStream(
+                Files.newOutputStream(Paths.get(invocationId)));
+
+        BuildEventArtifactUploader localFileUploader = new LocalFilesArtifactUploader();
+        bepTransportsBuilder.add(
+            new CriticalPathBuildEventFileTransport(
+                bepCriticalPathBuildEventStream,
+                bepOptions,
+                localFileUploader,
+                artifactGroupNamer));
+      } catch (IOException exception) {
+        // TODO(b/125216340): Consider making this a warning instead of an error once the
+        //  associated bug has been resolved.
+        reportError(
+            reporter,
+            cmdEnv.getBlazeModuleEnvironment(),
+            "Unable to write to '"
+                + invocationId
+                + "'. Omitting --critical_path_build_event_file.",
             exception,
             ExitCode.LOCAL_ENVIRONMENTAL_ERROR,
             BuildProgress.Code.BES_LOCAL_WRITE_ERROR);
