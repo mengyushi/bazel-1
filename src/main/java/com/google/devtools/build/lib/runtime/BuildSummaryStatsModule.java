@@ -36,8 +36,12 @@ import com.google.devtools.build.lib.skyframe.ExecutionFinishedEvent;
 import com.google.devtools.build.lib.vfs.Path;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.google.devtools.build.lib.actions.AggregatedSpawnMetrics;
+import com.google.devtools.build.lib.actions.SpawnMetrics;
 
 /**
  * Blaze module for the build summary message that reports various stats to the user.
@@ -127,6 +131,10 @@ public class BuildSummaryStatsModule extends BlazeModule {
             Profiler.instance().profile(ProfilerTask.CRITICAL_PATH, "Critical path")) {
           criticalPath = criticalPathComputer.aggregate();
           items.add(criticalPath.toStringSummaryNoRemote());
+
+          System.out.println(">> " + criticalPath.toString());
+
+
           event.getResult().getBuildToolLogCollection()
               .addDirectValue(
                   "critical path", criticalPath.toString().getBytes(StandardCharsets.UTF_8));
@@ -144,6 +152,105 @@ public class BuildSummaryStatsModule extends BlazeModule {
                     stat.getElapsedTime(),
                     ProfilerTask.CRITICAL_PATH_COMPONENT,
                     stat.prettyPrintAction());
+
+            AggregatedSpawnMetrics spawnMetrics = stat.getSpawnMetrics();
+            SpawnMetrics remoteSpawnMetrics = spawnMetrics.getRemoteMetrics();
+            if (!remoteSpawnMetrics.isEmpty()) {
+              Long startTime = stat.getStartTimeNanos();
+
+              if (!remoteSpawnMetrics.parseTime().isZero()){
+                Profiler.instance()
+                .logSimpleTaskDuration(
+                    startTime,
+                    remoteSpawnMetrics.parseTime(),
+                    ProfilerTask.CRITICAL_PATH_COMPONENT,
+                    "parse");
+                startTime += remoteSpawnMetrics.parseTime().toNanos();
+              }
+
+              if (!remoteSpawnMetrics.networkTime().isZero()){
+                Profiler.instance()
+                    .logSimpleTaskDuration(
+                        startTime,
+                        remoteSpawnMetrics.networkTime(),
+                        ProfilerTask.CRITICAL_PATH_COMPONENT,
+                        "network");
+                startTime += remoteSpawnMetrics.networkTime().toNanos(); 
+              }          
+              
+              if (!remoteSpawnMetrics.fetchTime().isZero()){
+                Profiler.instance()
+                    .logSimpleTaskDuration(
+                        startTime,
+                        remoteSpawnMetrics.fetchTime(),
+                        ProfilerTask.CRITICAL_PATH_COMPONENT,
+                        "Fetch");
+                startTime += remoteSpawnMetrics.fetchTime().toNanos();
+              }
+              
+              if (!remoteSpawnMetrics.queueTime().isZero()){
+                Profiler.instance()
+                    .logSimpleTaskDuration(
+                        startTime,
+                        remoteSpawnMetrics.queueTime(),
+                        ProfilerTask.CRITICAL_PATH_COMPONENT,
+                        "queue");
+                startTime += remoteSpawnMetrics.queueTime().toNanos();
+              }
+
+              if (!remoteSpawnMetrics.uploadTime().isZero()){
+                Profiler.instance()
+                    .logSimpleTaskDuration(
+                        startTime,
+                        remoteSpawnMetrics.uploadTime(),
+                        ProfilerTask.CRITICAL_PATH_COMPONENT,
+                        "upload");
+                startTime += remoteSpawnMetrics.uploadTime().toNanos();
+              }
+
+              if (!remoteSpawnMetrics.setupTime().isZero()){
+                Profiler.instance()
+                    .logSimpleTaskDuration(
+                        startTime,
+                        remoteSpawnMetrics.setupTime(),
+                        ProfilerTask.CRITICAL_PATH_COMPONENT,
+                        "setup");
+                startTime += remoteSpawnMetrics.setupTime().toNanos();
+              }
+
+              if (!remoteSpawnMetrics.executionWallTime().isZero()){
+                Profiler.instance()
+                    .logSimpleTaskDuration(
+                        startTime,
+                        remoteSpawnMetrics.executionWallTime(),
+                        ProfilerTask.CRITICAL_PATH_COMPONENT,
+                        "execution");         
+                startTime += remoteSpawnMetrics.executionWallTime().toNanos();
+              }
+
+              if (!remoteSpawnMetrics.retryTime().isZero()){
+                Profiler.instance()
+                    .logSimpleTaskDuration(
+                        startTime,
+                        remoteSpawnMetrics.retryTime(),
+                        ProfilerTask.CRITICAL_PATH_COMPONENT,
+                      "retry");
+                startTime += remoteSpawnMetrics.retryTime().toNanos();
+              }
+
+              if (!remoteSpawnMetrics.processOutputsTime().isZero()){
+                Profiler.instance()
+                    .logSimpleTaskDuration(
+                        startTime,
+                        remoteSpawnMetrics.processOutputsTime(),
+                        ProfilerTask.CRITICAL_PATH_COMPONENT,
+                        "process outputs");
+                startTime += remoteSpawnMetrics.retryTime().toNanos();
+              }
+
+              // TODO: Other time
+
+            }
           }
         }
       }
